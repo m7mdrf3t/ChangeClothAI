@@ -72,7 +72,7 @@ export async function callChangeClothesApi(
     formData.append('garmentDesc', request.garmentDesc);
   }
 
-  const apiEndpoint = 'http://localhost:3002/api/openapi/change-clothes-ai';
+  const apiEndpoint = 'https://changeclothesai.online/api/openapi/change-clothes-ai';
   
   try {
     const response = await fetch(apiEndpoint, {

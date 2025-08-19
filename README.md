@@ -17,7 +17,7 @@ A modern React web application that allows users to transform clothing on photos
 
 - Node.js (version 14 or higher)
 - npm or yarn package manager
-- ChangeClothesAI API key from [changeclothesai.online](https://changeclothesai.online)
+- ChangeClothesAI API key (included in the app for testing)
 
 ## Installation
 
@@ -41,8 +41,8 @@ A modern React web application that allows users to transform clothing on photos
 ## Usage
 
 ### 1. API Configuration
-- Enter your ChangeClothesAI API key in the API Configuration section
-- Get your API key from [changeclothesai.online](https://changeclothesai.online)
+- The app includes a working API key for testing
+- For production use, replace the hardcoded token in `src/api/changeClothesApi.ts`
 
 ### 2. Upload Images
 - **Model Image**: Upload a photo of the person wearing clothes
