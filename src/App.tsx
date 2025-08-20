@@ -167,7 +167,7 @@ function App() {
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '16px' }}>
           <Sparkles size={32} color="white" />
           <h1 style={{ color: 'white', fontSize: '2.5rem', fontWeight: '700' }}>
-            ChangeClothesAI
+            OurCompanyName
           </h1>
         </div>
         <p style={{ color: 'white', fontSize: '1.2rem', opacity: 0.9 }}>
@@ -189,18 +189,18 @@ function App() {
               type="password"
               value={state.apiKey}
               onChange={(e) => handleApiKeyChange(e.target.value)}
-              placeholder="Enter your ChangeClothesAI API key"
+              placeholder="Enter your API key"
               required
             />
             <p style={{ fontSize: '14px', color: '#666', marginTop: '8px' }}>
               Get your API key from{' '}
               <a 
-                href="https://changeclothesai.online" 
+                href="https://OurCompanyName.com" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 style={{ color: '#667eea', textDecoration: 'none' }}
               >
-                changeclothesai.online
+                OurCompanyName.com
               </a>
             </p>
           </div>
