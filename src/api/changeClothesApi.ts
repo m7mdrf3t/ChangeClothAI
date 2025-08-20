@@ -4,84 +4,103 @@ export async function callChangeClothesApi(
   request: ChangeClothesRequest,
   apiKey: string
 ): Promise<ChangeClothesResponse> {
-  const formData = new FormData();
   
-  // Add model image - send URLs directly (including base64)
-  if (typeof request.modelImg === 'string') {
-    console.log('Processing model image:', request.modelImg.substring(0, 50) + '...');
-    console.log('Using model image URL directly (including base64)');
-    formData.append('modelImg', 'https://persistent.changeclothesai.online/change-clothes-ai/assets/examples/person-tab/women/003.jpg');
-  } else {
+  console.log('=== DEBUG: Starting API call ===');
+  console.log('Request object:', request);
+  console.log('API Key present:', !!apiKey);
+  
+  // Validate inputs
+  if (typeof request.modelImg !== 'string') {
     throw new Error('Model image must be a URL string');
   }
-
-  // Add garment image - send URLs directly (including base64)
-  if (typeof request.garmentImg === 'string') {
-    console.log('Processing garment image:', request.garmentImg.substring(0, 50) + '...');
-    console.log('Using garment image URL directly (including base64)');
-    formData.append('garmentImg', 'https://persistent.changeclothesai.online/change-clothes-ai/assets/examples/garment-tab/dresses/04-01.jpg');
-  } else {
+  if (typeof request.garmentImg !== 'string') {
     throw new Error('Garment image must be a URL string');
   }
 
-  // Add category
-  formData.append('category', request.category);
+  // Log the URLs to check if they're valid
+  console.log('Model Image URL:', request.modelImg);
+  console.log('Garment Image URL:', request.garmentImg);
+  console.log('Category:', request.category);
+  
+  // Check if URLs are actually accessible
+  console.log('Model Image URL length:', request.modelImg.length);
+  console.log('Garment Image URL length:', request.garmentImg.length);
+  console.log('Model Image starts with:', request.modelImg.substring(0, 50));
+  console.log('Garment Image starts with:', request.garmentImg.substring(0, 50));
 
-  // Add garment description if provided
+  // Create FormData exactly like your working test
+  const formData = new FormData();
+  formData.append('modelImg', request.modelImg);
+  formData.append('garmentImg', request.garmentImg);
+  formData.append('category', request.category);
+  
   if (request.garmentDesc && request.garmentDesc.trim() !== '') {
     formData.append('garmentDesc', request.garmentDesc);
+    console.log('Added garment description:', request.garmentDesc);
   }
 
-  // Use local proxy (fixed to handle CORS properly)
+  // Debug: Log all FormData entries
+  console.log('=== FormData contents ===');
+  for (let pair of formData.entries()) {
+    console.log(pair[0] + ':', typeof pair[1] === 'string' ? pair[1].substring(0, 100) + '...' : pair[1]);
+  }
+
   const apiEndpoint = '/api/openapi/change-clothes-ai';
   
   try {
+    console.log('Making request to:', apiEndpoint);
+    
     const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBpZCI6ImFwcF9kNmE1ODNlMyIsImlhdCI6MTc1NTU5Mjk1NX0.Do6F2y_Jvgn1j_3OzI6jc1Zlzxp6Cin_3oNrob88wCA`,
-        // Minimal headers - exactly like the working curl command
+        'Authorization': `Bearer ${apiKey}`,
+        // Don't set Content-Type - let browser handle it for FormData
       },
       body: formData,
     });
 
-    if (!response.ok) {
-      let errorMessage = `HTTP error ${response.status}`;
-      try {
-        const errorData = await response.json();
-        // Check if it's an API error with code
-        if (errorData.code && errorData.code !== 200) {
-          errorMessage = `API Error ${errorData.code}: ${errorData.msg || 'Unknown error'}`;
-        } else {
-          errorMessage += `: ${errorData.msg || 'Unknown error'}`;
-        }
-      } catch (parseError) {
-        // If we can't parse JSON, try to get text
-        try {
-          const errorText = await response.text();
-          errorMessage += `: ${errorText.substring(0, 200)}`;
-        } catch (textError) {
-          errorMessage += ': Unable to read error details';
-        }
-      }
-      throw new Error(errorMessage);
-    }
+    console.log('=== Response received ===');
+    console.log('Status:', response.status);
+    console.log('Status text:', response.statusText);
+    console.log('Headers:', Object.fromEntries(response.headers.entries()));
+
+    // Get response text first
+    const responseText = await response.text();
+    console.log('Raw response text:', responseText);
 
     let data;
     try {
-      data = await response.json();
+      data = JSON.parse(responseText);
+      console.log('Parsed response data:', data);
     } catch (parseError) {
-      console.error('Failed to parse response as JSON:', parseError);
-      throw new Error('Invalid response format from server');
+      console.error('JSON parse error:', parseError);
+      console.error('Response was:', responseText);
+      throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}`);
     }
 
-    // Check API response code
+    // Log the specific error details
+    if (data.code !== 200) {
+      console.error('=== API Error Details ===');
+      console.error('Error code:', data.code);
+      console.error('Error message:', data.msg);
+      console.error('Full error data:', data);
+      
+      // The {} in "Try on exception: {}" suggests empty error details
+      if (data.code === 20001) {
+        console.error('This is a "Try on exception" - likely an issue with the image URLs or format');
+      }
+    }
+
+    if (!response.ok) {
+      throw new Error(`HTTP Error ${response.status}: ${data.msg || responseText.substring(0, 100)}`);
+    }
+
     if (data.code !== 200) {
       throw new Error(`API Error ${data.code}: ${data.msg || 'Unknown error'}`);
     }
 
     if (!data.data) {
-      throw new Error('Unexpected response format from server');
+      throw new Error('Missing data field in API response');
     }
 
     return { 
@@ -91,17 +110,9 @@ export async function callChangeClothesApi(
     };
 
   } catch (error) {
-    console.error('Error changing clothes:', error);
-    
-    // Handle CORS errors specifically
-    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
-      return {
-        resultImgUrl: null,
-        maskImgUrl: null,
-        error: 'CORS Error: Unable to connect to the API. This might be due to browser security restrictions. Please try using a CORS-enabled browser extension or contact the API provider.'
-      };
-    }
-    
+    console.error('=== Final Error ===');
+    console.error('Error type:', typeof error);
+  
     return { 
       resultImgUrl: null, 
       maskImgUrl: null, 
