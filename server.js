@@ -13,17 +13,22 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Handle raw body for API requests
+app.use('/api', express.raw({ type: 'application/octet-stream', limit: '50mb' }));
+
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'build')));
 
 // API proxy for ChangeClothesAI
-app.use('/api', express.raw({ type: 'application/octet-stream', limit: '50mb' }));
-
 app.post('/api/*', async (req, res) => {
   try {
     const targetUrl = `https://changeclothesai.online${req.path}`;
     
     console.log(`Proxying request to: ${targetUrl}`);
+    console.log(`Request headers:`, req.headers);
+    
+    // Get the raw body as buffer
+    const rawBody = req.body;
     
     const response = await fetch(targetUrl, {
       method: 'POST',
@@ -33,14 +38,24 @@ app.post('/api/*', async (req, res) => {
         'Origin': 'https://changeclothesai.online',
         'Referer': 'https://changeclothesai.online'
       },
-      body: req.body
+      body: rawBody
     });
 
-    const data = await response.json();
-    
     console.log(`Response status: ${response.status}`);
+    console.log(`Response headers:`, response.headers);
     
-    res.status(response.status).json(data);
+    // Check if response is JSON
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const data = await response.json();
+      console.log(`Response data:`, data);
+      res.status(response.status).json(data);
+    } else {
+      // Handle non-JSON responses
+      const text = await response.text();
+      console.log(`Response text:`, text.substring(0, 200));
+      res.status(response.status).send(text);
+    }
   } catch (error) {
     console.error('Proxy error:', error);
     res.status(500).json({ 
