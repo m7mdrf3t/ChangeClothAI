@@ -13,8 +13,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Handle raw body for API requests
-app.use('/api', express.raw({ type: 'application/octet-stream', limit: '50mb' }));
+// Handle all content types for API requests
+app.use('/api', express.raw({ type: '*/*', limit: '50mb' }));
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, 'build')));
@@ -34,9 +34,8 @@ app.post('/api/*', async (req, res) => {
       method: 'POST',
       headers: {
         'Authorization': req.headers.authorization,
-        'Content-Type': req.headers['content-type'],
-        'Origin': 'https://changeclothesai.online',
-        'Referer': 'https://changeclothesai.online'
+        // Don't set Content-Type - let fetch set it automatically for FormData
+        // Don't set Origin or Referer - let the API handle it
       },
       body: rawBody
     });
