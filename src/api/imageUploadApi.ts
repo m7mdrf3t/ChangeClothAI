@@ -20,14 +20,11 @@ export async function uploadToCloudinary(file: File): Promise<ImageUploadRespons
   try {
     console.log('Uploading to Cloudinary...');
     
-    // Convert file to base64 for Cloudinary
-    const base64 = await fileToBase64(file);
-    const base64Data = base64.split(',')[1]; // Remove data URL prefix
-    
+    // Upload file directly to Cloudinary
     const formData = new FormData();
-    formData.append('file', `data:${file.type};base64,${base64Data}`);
+    formData.append('file', file);
     formData.append('api_key', 'vR23n80zCWJvj1fAmISaR_QkEI0');
-    formData.append('upload_preset', 'ml_default'); // Use default upload preset
+    formData.append('upload_preset', 'ml_default');
     
     const response = await fetch('https://api.cloudinary.com/v1_1/demo/image/upload', {
       method: 'POST',
