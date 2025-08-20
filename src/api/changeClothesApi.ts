@@ -72,6 +72,7 @@ export async function callChangeClothesApi(
     formData.append('garmentDesc', request.garmentDesc);
   }
 
+  // Use local Express.js proxy
   const apiEndpoint = '/api/openapi/change-clothes-ai';
   
   try {
