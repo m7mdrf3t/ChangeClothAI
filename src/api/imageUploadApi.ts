@@ -24,9 +24,9 @@ export async function uploadToCloudinary(file: File): Promise<ImageUploadRespons
     const formData = new FormData();
     formData.append('file', file);
     formData.append('api_key', 'vR23n80zCWJvj1fAmISaR_QkEI0');
-    formData.append('upload_preset', 'ml_default');
+    formData.append('upload_preset', 'clothAi');
     
-    const response = await fetch('https://api.cloudinary.com/v1_1/demo/image/upload', {
+    const response = await fetch('https://api.cloudinary.com/v1_1/dryzklhaw/image/upload', {
       method: 'POST',
       body: formData,
     });
