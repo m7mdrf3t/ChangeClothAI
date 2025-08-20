@@ -33,7 +33,7 @@ export async function callChangeClothesApi(
   }
 
   // Use local proxy (fixed to handle CORS properly)
-  const apiEndpoint = 'https://changeclothesai.online/api/openapi/change-clothes-ai';
+  const apiEndpoint = '/api/openapi/change-clothes-ai';
   
   try {
     const response = await fetch(apiEndpoint, {
