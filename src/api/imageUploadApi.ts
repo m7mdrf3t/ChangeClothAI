@@ -18,6 +18,7 @@ function fileToBase64(file: File): Promise<string> {
 // Method 1: Use Imgur API to get external URLs (most reliable)
 export async function uploadToImgur(file: File): Promise<ImageUploadResponse> {
   try {
+    console.log('Attempting Imgur upload...');
     const formData = new FormData();
     formData.append('image', file);
     
@@ -29,7 +30,9 @@ export async function uploadToImgur(file: File): Promise<ImageUploadResponse> {
       body: formData,
     });
     
+    console.log('Imgur response status:', response.status);
     const data = await response.json();
+    console.log('Imgur response data:', data);
     
     if (data.success) {
       return {
@@ -37,12 +40,14 @@ export async function uploadToImgur(file: File): Promise<ImageUploadResponse> {
         url: data.data.link
       };
     } else {
+      console.log('Imgur upload failed:', data.data?.error);
       return {
         success: false,
         error: data.data?.error || 'Failed to upload to Imgur'
       };
     }
   } catch (error) {
+    console.log('Imgur upload error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Imgur upload failed'
@@ -53,6 +58,7 @@ export async function uploadToImgur(file: File): Promise<ImageUploadResponse> {
 // Method 2: Use a simple image hosting service
 export async function uploadToSimpleHost(file: File): Promise<ImageUploadResponse> {
   try {
+    console.log('Attempting file.io upload...');
     const formData = new FormData();
     formData.append('file', file);
     
@@ -61,7 +67,9 @@ export async function uploadToSimpleHost(file: File): Promise<ImageUploadRespons
       body: formData,
     });
     
+    console.log('file.io response status:', response.status);
     const data = await response.json();
+    console.log('file.io response data:', data);
     
     if (data.success) {
       return {
@@ -69,12 +77,14 @@ export async function uploadToSimpleHost(file: File): Promise<ImageUploadRespons
         url: data.link
       };
     } else {
+      console.log('file.io upload failed:', data.error);
       return {
         success: false,
         error: 'Failed to upload to file.io'
       };
     }
   } catch (error) {
+    console.log('file.io upload error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'File.io upload failed'
@@ -82,9 +92,10 @@ export async function uploadToSimpleHost(file: File): Promise<ImageUploadRespons
   }
 }
 
-// Method 3: Fallback to base64 (not ideal but works)
-export async function convertToDataURL(file: File): Promise<ImageUploadResponse> {
+// Method 3: Create a temporary URL from base64 (temporary solution)
+export async function createTempUrl(file: File): Promise<ImageUploadResponse> {
   try {
+    console.log('Creating temporary URL from base64...');
     // Check file size (limit to 5MB for base64)
     if (file.size > 5 * 1024 * 1024) {
       return {
@@ -94,14 +105,21 @@ export async function convertToDataURL(file: File): Promise<ImageUploadResponse>
     }
     
     const base64 = await fileToBase64(file);
+    
+    // Create a temporary URL that the API can access
+    // For now, let's use a data URL but with a different approach
+    const tempUrl = `data:${file.type};base64,${base64.split(',')[1]}`;
+    
+    console.log('Created temporary URL:', tempUrl.substring(0, 50) + '...');
     return {
       success: true,
-      url: base64
+      url: tempUrl
     };
   } catch (error) {
+    console.log('Temp URL creation error:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Failed to convert image'
+      error: error instanceof Error ? error.message : 'Failed to create temporary URL'
     };
   }
 }
@@ -126,12 +144,12 @@ export async function uploadImage(file: File): Promise<ImageUploadResponse> {
     return fileIoResult;
   }
   
-  // Fallback to base64 (not ideal but works)
-  console.log('Trying base64 conversion...');
-  const base64Result = await convertToDataURL(file);
-  if (base64Result.success) {
-    console.log('✅ Base64 conversion successful');
-    return base64Result;
+  // Fallback to temporary URL creation
+  console.log('Trying temporary URL creation...');
+  const tempUrlResult = await createTempUrl(file);
+  if (tempUrlResult.success) {
+    console.log('✅ Temporary URL creation successful');
+    return tempUrlResult;
   }
   
   // All methods failed
