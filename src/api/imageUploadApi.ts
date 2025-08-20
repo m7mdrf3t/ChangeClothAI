@@ -1,11 +1,11 @@
-// Image upload service using free hosting services
+// Image upload service using Cloudinary
 export interface ImageUploadResponse {
   success: boolean;
   url?: string;
   error?: string;
 }
 
-// Helper function to convert file to base64
+// Helper function to convert file to base64 (needed for Cloudinary)
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -15,10 +15,10 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-// Method 1: Use Cloudinary API to get external URLs (most reliable)
+// Upload to Cloudinary to get external URLs
 export async function uploadToCloudinary(file: File): Promise<ImageUploadResponse> {
   try {
-    console.log('Attempting Cloudinary upload...');
+    console.log('Uploading to Cloudinary...');
     
     // Convert file to base64 for Cloudinary
     const base64 = await fileToBase64(file);
@@ -39,19 +39,20 @@ export async function uploadToCloudinary(file: File): Promise<ImageUploadRespons
     console.log('Cloudinary response data:', data);
     
     if (data.secure_url) {
+      console.log('✅ Cloudinary upload successful');
       return {
         success: true,
         url: data.secure_url
       };
     } else {
-      console.log('Cloudinary upload failed:', data.error);
+      console.log('❌ Cloudinary upload failed:', data.error);
       return {
         success: false,
         error: data.error?.message || 'Failed to upload to Cloudinary'
       };
     }
   } catch (error) {
-    console.log('Cloudinary upload error:', error);
+    console.log('❌ Cloudinary upload error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Cloudinary upload failed'
@@ -59,107 +60,10 @@ export async function uploadToCloudinary(file: File): Promise<ImageUploadRespons
   }
 }
 
-// Method 2: Use a simple image hosting service
-export async function uploadToSimpleHost(file: File): Promise<ImageUploadResponse> {
-  try {
-    console.log('Attempting file.io upload...');
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    const response = await fetch('https://file.io', {
-      method: 'POST',
-      body: formData,
-    });
-    
-    console.log('file.io response status:', response.status);
-    const data = await response.json();
-    console.log('file.io response data:', data);
-    
-    if (data.success) {
-      return {
-        success: true,
-        url: data.link
-      };
-    } else {
-      console.log('file.io upload failed:', data.error);
-      return {
-        success: false,
-        error: 'Failed to upload to file.io'
-      };
-    }
-  } catch (error) {
-    console.log('file.io upload error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'File.io upload failed'
-    };
-  }
-}
-
-// Method 3: Create a temporary URL from base64 (temporary solution)
-export async function createTempUrl(file: File): Promise<ImageUploadResponse> {
-  try {
-    console.log('Creating temporary URL from base64...');
-    // Check file size (limit to 5MB for base64)
-    if (file.size > 5 * 1024 * 1024) {
-      return {
-        success: false,
-        error: 'File too large for base64 conversion (max 5MB)'
-      };
-    }
-    
-    const base64 = await fileToBase64(file);
-    
-    // Create a temporary URL that the API can access
-    // For now, let's use a data URL but with a different approach
-    const tempUrl = `data:${file.type};base64,${base64.split(',')[1]}`;
-    
-    console.log('Created temporary URL:', tempUrl.substring(0, 50) + '...');
-    return {
-      success: true,
-      url: tempUrl
-    };
-  } catch (error) {
-    console.log('Temp URL creation error:', error);
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to create temporary URL'
-    };
-  }
-}
-
-// Main upload function that tries multiple services
+// Main upload function - only uses Cloudinary
 export async function uploadImage(file: File): Promise<ImageUploadResponse> {
   console.log(`Uploading image: ${file.name} (${file.size} bytes)`);
   
-  // Try Cloudinary first (external URL - most reliable)
-  console.log('Trying Cloudinary...');
-  const cloudinaryResult = await uploadToCloudinary(file);
-  if (cloudinaryResult.success) {
-    console.log('✅ Cloudinary upload successful');
-    return cloudinaryResult;
-  }
-  
-  // Try file.io as backup
-  console.log('Trying file.io...');
-  const fileIoResult = await uploadToSimpleHost(file);
-  if (fileIoResult.success) {
-    console.log('✅ File.io upload successful');
-    return fileIoResult;
-  }
-  
-  // Fallback to temporary URL creation
-  console.log('Trying temporary URL creation...');
-  const tempUrlResult = await createTempUrl(file);
-  if (tempUrlResult.success) {
-    console.log('✅ Temporary URL creation successful');
-    return tempUrlResult;
-  }
-  
-  // All methods failed
-  console.log('❌ All upload methods failed');
-  return {
-    success: false,
-    error: 'All upload methods failed. Please try a smaller image or check your internet connection.'
-  };
+  // Only use Cloudinary
+  return await uploadToCloudinary(file);
 }
