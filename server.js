@@ -49,6 +49,8 @@ app.post('/api/*', async (req, res) => {
     if (contentType && contentType.includes('application/json')) {
       const data = await response.json();
       console.log(`Response data:`, data);
+      
+      // Forward the API response as-is
       res.status(response.status).json(data);
     } else {
       // Handle non-JSON responses

@@ -92,7 +92,12 @@ export async function callChangeClothesApi(
       let errorMessage = `HTTP error ${response.status}`;
       try {
         const errorData = await response.json();
-        errorMessage += `: ${errorData.msg || 'Unknown error'}`;
+        // Check if it's an API error with code
+        if (errorData.code && errorData.code !== 200) {
+          errorMessage = `API Error ${errorData.code}: ${errorData.msg || 'Unknown error'}`;
+        } else {
+          errorMessage += `: ${errorData.msg || 'Unknown error'}`;
+        }
       } catch (parseError) {
         // If we can't parse JSON, try to get text
         try {
@@ -113,7 +118,12 @@ export async function callChangeClothesApi(
       throw new Error('Invalid response format from server');
     }
 
-    if (!data || !data.data) {
+    // Check API response code
+    if (data.code !== 200) {
+      throw new Error(`API Error ${data.code}: ${data.msg || 'Unknown error'}`);
+    }
+
+    if (!data.data) {
       throw new Error('Unexpected response format from server');
     }
 
