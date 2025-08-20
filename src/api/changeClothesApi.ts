@@ -54,8 +54,8 @@ export async function callChangeClothesApi(
     formData.append('garmentDesc', request.garmentDesc);
   }
 
-  // Call API directly (bypass proxy)
-  const apiEndpoint = 'https://changeclothesai.online/api/openapi/change-clothes-ai';
+  // Use local proxy (fixed to handle CORS properly)
+  const apiEndpoint = '/api/openapi/change-clothes-ai';
   
   try {
     const response = await fetch(apiEndpoint, {

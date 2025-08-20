@@ -10,7 +10,8 @@ const PORT = process.env.PORT || 3000;
 app.use(cors({
   origin: '*',
   methods: ['GET', 'POST', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin'],
+  credentials: false
 }));
 
 // Handle all content types for API requests
@@ -34,8 +35,7 @@ app.post('/api/*', async (req, res) => {
       method: 'POST',
       headers: {
         'Authorization': req.headers.authorization,
-        // Don't set Content-Type - let fetch set it automatically for FormData
-        // Don't set Origin or Referer - let the API handle it
+        'Content-Type': req.headers['content-type'] || 'multipart/form-data',
       },
       body: rawBody
     });
