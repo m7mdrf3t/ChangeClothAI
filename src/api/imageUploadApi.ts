@@ -15,7 +15,31 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-// Method 1: Use Imgur API (free, no API key required for anonymous uploads)
+// Method 1: Use a simple base64 approach (most reliable, no CORS issues)
+export async function convertToDataURL(file: File): Promise<ImageUploadResponse> {
+  try {
+    // Check file size (limit to 5MB for base64)
+    if (file.size > 5 * 1024 * 1024) {
+      return {
+        success: false,
+        error: 'File too large for base64 conversion (max 5MB)'
+      };
+    }
+    
+    const base64 = await fileToBase64(file);
+    return {
+      success: true,
+      url: base64
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Failed to convert image'
+    };
+  }
+}
+
+// Method 2: Use Imgur API (free, no API key required for anonymous uploads)
 export async function uploadToImgur(file: File): Promise<ImageUploadResponse> {
   try {
     const formData = new FormData();
@@ -46,30 +70,6 @@ export async function uploadToImgur(file: File): Promise<ImageUploadResponse> {
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Imgur upload failed'
-    };
-  }
-}
-
-// Method 2: Use a simple base64 approach (works but not ideal for large files)
-export async function convertToDataURL(file: File): Promise<ImageUploadResponse> {
-  try {
-    // Check file size (limit to 5MB for base64)
-    if (file.size > 5 * 1024 * 1024) {
-      return {
-        success: false,
-        error: 'File too large for base64 conversion (max 5MB)'
-      };
-    }
-    
-    const base64 = await fileToBase64(file);
-    return {
-      success: true,
-      url: base64
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error instanceof Error ? error.message : 'Failed to convert image'
     };
   }
 }
@@ -110,7 +110,15 @@ export async function uploadToSimpleHost(file: File): Promise<ImageUploadRespons
 export async function uploadImage(file: File): Promise<ImageUploadResponse> {
   console.log(`Uploading image: ${file.name} (${file.size} bytes)`);
   
-  // Try Imgur first (most reliable)
+  // Try base64 first (most reliable, no CORS issues)
+  console.log('Trying base64 conversion...');
+  const base64Result = await convertToDataURL(file);
+  if (base64Result.success) {
+    console.log('✅ Base64 conversion successful');
+    return base64Result;
+  }
+  
+  // Try Imgur as backup
   console.log('Trying Imgur...');
   const imgurResult = await uploadToImgur(file);
   if (imgurResult.success) {
@@ -118,20 +126,12 @@ export async function uploadImage(file: File): Promise<ImageUploadResponse> {
     return imgurResult;
   }
   
-  // Try file.io
+  // Try file.io as last resort
   console.log('Trying file.io...');
   const fileIoResult = await uploadToSimpleHost(file);
   if (fileIoResult.success) {
     console.log('✅ File.io upload successful');
     return fileIoResult;
-  }
-  
-  // Fallback to base64 (works but not ideal)
-  console.log('Trying base64 conversion...');
-  const base64Result = await convertToDataURL(file);
-  if (base64Result.success) {
-    console.log('✅ Base64 conversion successful');
-    return base64Result;
   }
   
   // All methods failed

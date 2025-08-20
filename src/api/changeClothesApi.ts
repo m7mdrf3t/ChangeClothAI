@@ -6,16 +6,42 @@ export async function callChangeClothesApi(
 ): Promise<ChangeClothesResponse> {
   const formData = new FormData();
   
-  // Add model image - now we expect URLs
+  // Add model image - handle both URLs and base64
   if (typeof request.modelImg === 'string') {
-    formData.append('modelImg', request.modelImg);
+    if (request.modelImg.startsWith('data:')) {
+      // It's a base64 data URL, convert to file
+      try {
+        const response = await fetch(request.modelImg);
+        const blob = await response.blob();
+        const file = new File([blob], 'model.jpg', { type: blob.type });
+        formData.append('modelImg', file);
+      } catch (error) {
+        throw new Error('Failed to convert base64 model image to file');
+      }
+    } else {
+      // It's a regular URL
+      formData.append('modelImg', request.modelImg);
+    }
   } else {
     throw new Error('Model image must be a URL string');
   }
 
-  // Add garment image - now we expect URLs
+  // Add garment image - handle both URLs and base64
   if (typeof request.garmentImg === 'string') {
-    formData.append('garmentImg', request.garmentImg);
+    if (request.garmentImg.startsWith('data:')) {
+      // It's a base64 data URL, convert to file
+      try {
+        const response = await fetch(request.garmentImg);
+        const blob = await response.blob();
+        const file = new File([blob], 'garment.jpg', { type: blob.type });
+        formData.append('garmentImg', file);
+      } catch (error) {
+        throw new Error('Failed to convert base64 garment image to file');
+      }
+    } else {
+      // It's a regular URL
+      formData.append('garmentImg', request.garmentImg);
+    }
   } else {
     throw new Error('Garment image must be a URL string');
   }
