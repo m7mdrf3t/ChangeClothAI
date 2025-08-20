@@ -30,8 +30,8 @@ export async function callChangeClothesApi(
 
   // Create FormData exactly like your working test
   const formData = new FormData();
-  formData.append('modelImg', request.modelImg);
-  formData.append('garmentImg', request.garmentImg);
+  formData.append('modelImg', 'https://res.cloudinary.com/dryzklhaw/image/upload/v1755661218/ik3u3ctc8jbvbo8stkx4.avif');
+  formData.append('garmentImg', 'https://res.cloudinary.com/dryzklhaw/image/upload/v1755661219/buzvsk2m0e5oa0uqikkc.avif');
   formData.append('category', request.category);
   
   if (request.garmentDesc && request.garmentDesc.trim() !== '') {
@@ -41,9 +41,9 @@ export async function callChangeClothesApi(
 
   // Debug: Log all FormData entries
   console.log('=== FormData contents ===');
-  for (let pair of formData.entries()) {
+  Array.from(formData.entries()).forEach(pair => {
     console.log(pair[0] + ':', typeof pair[1] === 'string' ? pair[1].substring(0, 100) + '...' : pair[1]);
-  }
+  });
 
   const apiEndpoint = '/api/openapi/change-clothes-ai';
   
