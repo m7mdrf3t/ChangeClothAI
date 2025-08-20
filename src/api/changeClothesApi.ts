@@ -8,18 +8,22 @@ export async function callChangeClothesApi(
   
   // Add model image - handle both URLs and base64
   if (typeof request.modelImg === 'string') {
+    console.log('Processing model image:', request.modelImg.substring(0, 50) + '...');
     if (request.modelImg.startsWith('data:')) {
       // It's a base64 data URL, convert to file
+      console.log('Converting base64 model image to file...');
       try {
         const response = await fetch(request.modelImg);
         const blob = await response.blob();
         const file = new File([blob], 'model.jpg', { type: blob.type });
         formData.append('modelImg', file);
+        console.log('✅ Model image converted to file:', file.name, file.size, 'bytes');
       } catch (error) {
         throw new Error('Failed to convert base64 model image to file');
       }
     } else {
       // It's a regular URL
+      console.log('Using model image URL directly');
       formData.append('modelImg', request.modelImg);
     }
   } else {
@@ -28,18 +32,22 @@ export async function callChangeClothesApi(
 
   // Add garment image - handle both URLs and base64
   if (typeof request.garmentImg === 'string') {
+    console.log('Processing garment image:', request.garmentImg.substring(0, 50) + '...');
     if (request.garmentImg.startsWith('data:')) {
       // It's a base64 data URL, convert to file
+      console.log('Converting base64 garment image to file...');
       try {
         const response = await fetch(request.garmentImg);
         const blob = await response.blob();
         const file = new File([blob], 'garment.jpg', { type: blob.type });
         formData.append('garmentImg', file);
+        console.log('✅ Garment image converted to file:', file.name, file.size, 'bytes');
       } catch (error) {
         throw new Error('Failed to convert base64 garment image to file');
       }
     } else {
       // It's a regular URL
+      console.log('Using garment image URL directly');
       formData.append('garmentImg', request.garmentImg);
     }
   } else {

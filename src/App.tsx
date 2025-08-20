@@ -72,6 +72,8 @@ function App() {
       if (!modelUploadResult.success) {
         throw new Error(`Failed to upload model image: ${modelUploadResult.error}`);
       }
+      console.log('✅ Model image uploaded successfully');
+      console.log('Model image URL:', modelUploadResult.url?.substring(0, 100) + '...');
 
       // Step 2: Upload garment image
       console.log('Uploading garment image...');
@@ -79,9 +81,13 @@ function App() {
       if (!garmentUploadResult.success) {
         throw new Error(`Failed to upload garment image: ${garmentUploadResult.error}`);
       }
+      console.log('✅ Garment image uploaded successfully');
+      console.log('Garment image URL:', garmentUploadResult.url?.substring(0, 100) + '...');
 
       // Step 3: Call ChangeClothesAI API with URLs
       console.log('Calling ChangeClothesAI API...');
+      console.log('Model URL type:', modelUploadResult.url?.startsWith('data:') ? 'base64' : 'external URL');
+      console.log('Garment URL type:', garmentUploadResult.url?.startsWith('data:') ? 'base64' : 'external URL');
       const request: ChangeClothesRequest = {
         modelImg: modelUploadResult.url!,
         garmentImg: garmentUploadResult.url!,
