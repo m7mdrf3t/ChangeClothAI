@@ -10,7 +10,7 @@ export async function callChangeClothesApi(
   if (typeof request.modelImg === 'string') {
     console.log('Processing model image:', request.modelImg.substring(0, 50) + '...');
     console.log('Using model image URL directly (including base64)');
-    formData.append('modelImg', request.modelImg);
+    formData.append('modelImg', 'https://persistent.changeclothesai.online/change-clothes-ai/assets/examples/person-tab/women/003.jpg');
   } else {
     throw new Error('Model image must be a URL string');
   }
@@ -19,7 +19,7 @@ export async function callChangeClothesApi(
   if (typeof request.garmentImg === 'string') {
     console.log('Processing garment image:', request.garmentImg.substring(0, 50) + '...');
     console.log('Using garment image URL directly (including base64)');
-    formData.append('garmentImg', request.garmentImg);
+    formData.append('garmentImg', 'https://persistent.changeclothesai.online/change-clothes-ai/assets/examples/garment-tab/dresses/04-01.jpg');
   } else {
     throw new Error('Garment image must be a URL string');
   }
