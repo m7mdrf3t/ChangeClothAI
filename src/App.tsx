@@ -3,6 +3,7 @@ import { Sparkles, Settings, Info } from 'lucide-react';
 import { ImageUpload } from './components/ImageUpload';
 import { ResultsDisplay } from './components/ResultsDisplay';
 import { callChangeClothesApi } from './api/changeClothesApi';
+import { uploadImage } from './api/imageUploadApi';
 import { AppState, ChangeClothesRequest } from './types';
 
 const initialAppState: AppState = {
@@ -65,9 +66,25 @@ function App() {
     }));
 
     try {
+      // Step 1: Upload model image
+      console.log('Uploading model image...');
+      const modelUploadResult = await uploadImage(state.modelImage.file);
+      if (!modelUploadResult.success) {
+        throw new Error(`Failed to upload model image: ${modelUploadResult.error}`);
+      }
+
+      // Step 2: Upload garment image
+      console.log('Uploading garment image...');
+      const garmentUploadResult = await uploadImage(state.garmentImage.file);
+      if (!garmentUploadResult.success) {
+        throw new Error(`Failed to upload garment image: ${garmentUploadResult.error}`);
+      }
+
+      // Step 3: Call ChangeClothesAI API with URLs
+      console.log('Calling ChangeClothesAI API...');
       const request: ChangeClothesRequest = {
-        modelImg: state.modelImage.file,
-        garmentImg: state.garmentImage.file,
+        modelImg: modelUploadResult.url!,
+        garmentImg: garmentUploadResult.url!,
         category: state.category,
         garmentDesc: state.garmentDesc.trim() || undefined,
       };
@@ -110,6 +127,7 @@ function App() {
     }));
 
     try {
+      console.log('Testing with demo URLs...');
       const request: ChangeClothesRequest = {
         modelImg: 'https://persistent.changeclothesai.online/change-clothes-ai/assets/examples/person-tab/women/003.jpg',
         garmentImg: 'https://persistent.changeclothesai.online/change-clothes-ai/assets/examples/garment-tab/dresses/04-01.jpg',
@@ -223,6 +241,24 @@ function App() {
               rows={3}
             />
           </div>
+
+          {state.isLoading && (
+            <div style={{ 
+              background: '#f8f9fa', 
+              padding: '16px', 
+              borderRadius: '8px', 
+              marginBottom: '16px',
+              border: '1px solid #e9ecef'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                <div className="spinner" style={{ width: '16px', height: '16px' }} />
+                <strong>Processing...</strong>
+              </div>
+              <p style={{ fontSize: '14px', color: '#666', margin: 0 }}>
+                Uploading images and processing with AI...
+              </p>
+            </div>
+          )}
 
           {state.error && (
             <div className="error">

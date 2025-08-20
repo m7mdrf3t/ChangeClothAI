@@ -6,62 +6,18 @@ export async function callChangeClothesApi(
 ): Promise<ChangeClothesResponse> {
   const formData = new FormData();
   
-  // Add model image
+  // Add model image - now we expect URLs
   if (typeof request.modelImg === 'string') {
-    // If it's a URL or base64, we need to convert it to a file
-    if (request.modelImg.startsWith('http')) {
-      // It's a URL, fetch and convert to file
-      try {
-        const response = await fetch(request.modelImg);
-        const blob = await response.blob();
-        const file = new File([blob], 'model.jpg', { type: blob.type });
-        formData.append('modelImg', file);
-      } catch (error) {
-        throw new Error('Failed to fetch model image from URL');
-      }
-    } else {
-      // It's base64, convert to file
-      try {
-        const response = await fetch(request.modelImg);
-        const blob = await response.blob();
-        const file = new File([blob], 'model.jpg', { type: blob.type });
-        formData.append('modelImg', file);
-      } catch (error) {
-        throw new Error('Failed to convert base64 model image to file');
-      }
-    }
-  } else {
-    // It's already a File
     formData.append('modelImg', request.modelImg);
+  } else {
+    throw new Error('Model image must be a URL string');
   }
 
-  // Add garment image
+  // Add garment image - now we expect URLs
   if (typeof request.garmentImg === 'string') {
-    // If it's a URL or base64, we need to convert it to a file
-    if (request.garmentImg.startsWith('http')) {
-      // It's a URL, fetch and convert to file
-      try {
-        const response = await fetch(request.garmentImg);
-        const blob = await response.blob();
-        const file = new File([blob], 'garment.jpg', { type: blob.type });
-        formData.append('garmentImg', file);
-      } catch (error) {
-        throw new Error('Failed to fetch garment image from URL');
-      }
-    } else {
-      // It's base64, convert to file
-      try {
-        const response = await fetch(request.garmentImg);
-        const blob = await response.blob();
-        const file = new File([blob], 'garment.jpg', { type: blob.type });
-        formData.append('garmentImg', file);
-      } catch (error) {
-        throw new Error('Failed to convert base64 garment image to file');
-      }
-    }
-  } else {
-    // It's already a File
     formData.append('garmentImg', request.garmentImg);
+  } else {
+    throw new Error('Garment image must be a URL string');
   }
 
   // Add category

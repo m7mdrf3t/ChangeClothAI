@@ -1,6 +1,6 @@
 export interface ChangeClothesRequest {
-  modelImg: File | string; // File, URL, or base64
-  garmentImg: File | string; // File, URL, or base64
+  modelImg: string; // URL only
+  garmentImg: string; // URL only
   category: 'upper_body' | 'lower_body' | 'dresses';
   garmentDesc?: string;
 }
