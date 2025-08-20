@@ -96,6 +96,47 @@ function App() {
     setState(initialAppState);
   };
 
+  const handleTestWithUrls = async () => {
+    if (!state.apiKey.trim()) {
+      setState(prev => ({ ...prev, error: 'Please enter your API key' }));
+      return;
+    }
+
+    setState(prev => ({ 
+      ...prev, 
+      isLoading: true, 
+      error: null,
+      results: null 
+    }));
+
+    try {
+      const request: ChangeClothesRequest = {
+        modelImg: 'https://persistent.changeclothesai.online/change-clothes-ai/assets/examples/person-tab/women/003.jpg',
+        garmentImg: 'https://persistent.changeclothesai.online/change-clothes-ai/assets/examples/garment-tab/dresses/04-01.jpg',
+        category: 'dresses',
+        garmentDesc: undefined,
+      };
+
+      const results = await callChangeClothesApi(request, state.apiKey);
+      
+      setState(prev => ({ 
+        ...prev, 
+        isLoading: false, 
+        results 
+      }));
+
+      if (results.error) {
+        setState(prev => ({ ...prev, error: results.error }));
+      }
+    } catch (error) {
+      setState(prev => ({ 
+        ...prev, 
+        isLoading: false, 
+        error: error instanceof Error ? error.message : 'An unexpected error occurred' 
+      }));
+    }
+  };
+
   return (
     <div className="container">
       <header style={{ textAlign: 'center', marginBottom: '32px' }}>
@@ -215,6 +256,15 @@ function App() {
               disabled={state.isLoading}
             >
               Reset
+            </button>
+            
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleTestWithUrls}
+              disabled={state.isLoading || !state.apiKey}
+            >
+              Test with Demo URLs
             </button>
           </div>
         </div>
