@@ -15,42 +15,46 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-// Method 1: Use Imgur API to get external URLs (most reliable)
-export async function uploadToImgur(file: File): Promise<ImageUploadResponse> {
+// Method 1: Use Cloudinary API to get external URLs (most reliable)
+export async function uploadToCloudinary(file: File): Promise<ImageUploadResponse> {
   try {
-    console.log('Attempting Imgur upload...');
-    const formData = new FormData();
-    formData.append('image', file);
+    console.log('Attempting Cloudinary upload...');
     
-    const response = await fetch('https://api.imgur.com/3/image', {
+    // Convert file to base64 for Cloudinary
+    const base64 = await fileToBase64(file);
+    const base64Data = base64.split(',')[1]; // Remove data URL prefix
+    
+    const formData = new FormData();
+    formData.append('file', `data:${file.type};base64,${base64Data}`);
+    formData.append('api_key', 'vR23n80zCWJvj1fAmISaR_QkEI0');
+    formData.append('upload_preset', 'ml_default'); // Use default upload preset
+    
+    const response = await fetch('https://api.cloudinary.com/v1_1/demo/image/upload', {
       method: 'POST',
-      headers: {
-        'Authorization': 'Client-ID 546c25a59c58ad7', // Anonymous client ID
-      },
       body: formData,
     });
     
-    console.log('Imgur response status:', response.status);
+    console.log('Cloudinary response status:', response.status);
     const data = await response.json();
-    console.log('Imgur response data:', data);
+    console.log('Cloudinary response data:', data);
     
-    if (data.success) {
+    if (data.secure_url) {
       return {
         success: true,
-        url: data.data.link
+        url: data.secure_url
       };
     } else {
-      console.log('Imgur upload failed:', data.data?.error);
+      console.log('Cloudinary upload failed:', data.error);
       return {
         success: false,
-        error: data.data?.error || 'Failed to upload to Imgur'
+        error: data.error?.message || 'Failed to upload to Cloudinary'
       };
     }
   } catch (error) {
-    console.log('Imgur upload error:', error);
+    console.log('Cloudinary upload error:', error);
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Imgur upload failed'
+      error: error instanceof Error ? error.message : 'Cloudinary upload failed'
     };
   }
 }
@@ -128,12 +132,12 @@ export async function createTempUrl(file: File): Promise<ImageUploadResponse> {
 export async function uploadImage(file: File): Promise<ImageUploadResponse> {
   console.log(`Uploading image: ${file.name} (${file.size} bytes)`);
   
-  // Try Imgur first (external URL - most reliable)
-  console.log('Trying Imgur...');
-  const imgurResult = await uploadToImgur(file);
-  if (imgurResult.success) {
-    console.log('✅ Imgur upload successful');
-    return imgurResult;
+  // Try Cloudinary first (external URL - most reliable)
+  console.log('Trying Cloudinary...');
+  const cloudinaryResult = await uploadToCloudinary(file);
+  if (cloudinaryResult.success) {
+    console.log('✅ Cloudinary upload successful');
+    return cloudinaryResult;
   }
   
   // Try file.io as backup
